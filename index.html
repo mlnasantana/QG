@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TatameCheck - Chamada de Jiu-Jitsu</title>
+    <title>Giovani Anastacio Team - Controle de Presença</title>
+    <!-- Ícone da página -->
+    <link rel="icon" type="image/png" href="img/qg anas.png">
+    
     <!-- Google Fonts & FontAwesome Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,9 +16,8 @@
 <body>
 
     <header class="main-header">
-        <header class="main-header">
         <div class="header-content">
-            <h1><i class="fa-solid fa-shield-halved" style="color: #dc2626;"></i> Giovani Anastacio Team</h1>
+            <h1><img src="img/qg anas.png" alt="Logo" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 8px; border: 2px solid var(--accent);"> Giovani Anastacio Team</h1>
             <p>Controle de Presença - Jiu-Jitsu</p>
         </div>
         <div class="header-stats">
@@ -42,12 +44,20 @@
         <section id="tab-chamada" class="tab-content active">
             <div class="card toolbar">
                 <div class="date-picker-group">
-                    <label for="dataChamada"><i class="fa-regular fa-calendar"></i> Data da Aula:</label>
+                    <label for="dataChamada"><i class="fa-regular fa-calendar"></i> Data:</label>
                     <input type="date" id="dataChamada" onchange="carregarChamada()">
                 </div>
+                <div class="date-picker-group">
+                    <label for="filtroTurmaChamada"><i class="fa-solid fa-people-group"></i> Turma:</label>
+                    <select id="filtroTurmaChamada" onchange="carregarChamada()">
+                        <option value="Adultos">Adultos</option>
+                        <option value="Kids 1">Kids 1</option>
+                        <option value="Kids 2">Kids 2</option>
+                    </select>
+                </div>
                 <div class="quick-actions">
-                    <button class="btn btn-success" onclick="marcarTodos('Presente')"><i class="fa-solid fa-check-double"></i> Todos Presentes</button>
-                    <button class="btn btn-secondary" onclick="marcarTodos('Ausente')"><i class="fa-solid fa-xmark"></i> Limpar Chamada</button>
+                    <button class="btn btn-success" onclick="marcarTodos('Presente')"><i class="fa-solid fa-check-double"></i> Todos</button>
+                    <button class="btn btn-secondary" onclick="marcarTodos('Ausente')"><i class="fa-solid fa-xmark"></i> Limpar</button>
                 </div>
             </div>
 
@@ -57,7 +67,7 @@
                         <thead>
                             <tr>
                                 <th>Aluno</th>
-                                <th>Faixa</th>
+                                <th>Faixa / Graus</th>
                                 <th>Presença</th>
                             </tr>
                         </thead>
@@ -84,14 +94,40 @@
                             <input type="text" id="nomeAluno" required placeholder="Ex: Lucas Silva">
                         </div>
                         <div class="form-group">
+                            <label for="turmaAluno">Turma</label>
+                            <select id="turmaAluno" required>
+                                <option value="Adultos">Adultos</option>
+                                <option value="Kids 1">Kids 1</option>
+                                <option value="Kids 2">Kids 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="faixaAluno">Faixa</label>
                             <select id="faixaAluno" required>
                                 <option value="Branca">Branca</option>
+                                <option value="Cinza">Cinza</option>
+                                <option value="Amarela">Amarela</option>
+                                <option value="Laranja">Laranja</option>
+                                <option value="Verde">Verde</option>
                                 <option value="Azul">Azul</option>
                                 <option value="Roxa">Roxa</option>
                                 <option value="Marrom">Marrom</option>
                                 <option value="Preta">Preta</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="grausAluno">Graus na Faixa</label>
+                            <select id="grausAluno" required>
+                                <option value="0">0 Graus</option>
+                                <option value="1">1 Grau</option>
+                                <option value="2">2 Graus</option>
+                                <option value="3">3 Graus</option>
+                                <option value="4">4 Graus</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="fotoAluno">Caminho da Foto (Ex: img/fred.jpg)</label>
+                            <input type="text" id="fotoAluno" placeholder="img/fred.jpg">
                         </div>
                     </div>
                     <div class="form-actions">
@@ -102,16 +138,23 @@
             </div>
 
             <div class="card">
-                <div class="search-bar">
-                    <input type="text" id="buscaAluno" placeholder="Buscar aluno por nome..." oninput="filtrarAlunos()">
+                <div class="search-bar" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <input type="text" id="buscaAluno" placeholder="Buscar aluno por nome..." oninput="filtrarAlunos()" style="flex: 2;">
+                    <select id="filtroTurmaGerenciar" onchange="filtrarAlunos()" style="flex: 1;">
+                        <option value="">Todas as Turmas</option>
+                        <option value="Adultos">Adultos</option>
+                        <option value="Kids 1">Kids 1</option>
+                        <option value="Kids 2">Kids 2</option>
+                    </select>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Nome</th>
-                                <th>Faixa</th>
-                                <th>Total de Presenças</th>
+                                <th>Aluno</th>
+                                <th>Turma</th>
+                                <th>Faixa e Graus</th>
+                                <th>Presenças</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -126,15 +169,24 @@
         <!-- ABA 3: RELATÓRIOS -->
         <section id="tab-relatorios" class="tab-content">
             <div class="card">
-                <h3><i class="fa-solid fa-chart-line"></i> Frequência Geral dos Alunos</h3>
+                <div class="search-bar" style="margin-bottom: 20px;">
+                    <label for="filtroTurmaRelatorio"><i class="fa-solid fa-filter"></i> Filtrar Relatório por Turma:</label>
+                    <select id="filtroTurmaRelatorio" onchange="renderizarRelatorios()" style="margin-top: 5px;">
+                        <option value="">Todas as Turmas</option>
+                        <option value="Adultos">Adultos</option>
+                        <option value="Kids 1">Kids 1</option>
+                        <option value="Kids 2">Kids 2</option>
+                    </select>
+                </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Aluno</th>
-                                <th>Faixa</th>
+                                <th>Turma</th>
+                                <th>Faixa e Graus</th>
                                 <th>Aulas Comparecidas</th>
-                                <th>Histórico de Datas</th>
+                                <th>Histórico</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaRelatorio">
@@ -145,6 +197,11 @@
             </div>
         </section>
     </main>
+
+    <!-- Rodapé Raiz -->
+    <footer style="text-align: center; margin: 40px 0 20px 0; color: var(--text-secondary); font-size: 0.85rem; padding: 20px; border-top: 1px solid var(--border);">
+        <p>&copy; 2026 Giovani Anastacio Team. Todos os direitos reservados. | Desenvolvido por Milena Santana.</p>
+    </footer>
 
     <!-- Modal de Histórico -->
     <div id="modalHistorico" class="modal">

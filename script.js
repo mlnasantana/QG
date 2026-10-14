@@ -1,13 +1,10 @@
-// Dados iniciais ou recuperados do localStorage
 let alunos = JSON.parse(localStorage.getItem('tatame_alunos')) || [
-    { id: '1', nome: 'Carlos Silva', faixa: 'Azul' },
-    { id: '2', nome: 'Mariana Souza', faixa: 'Roxa' },
-    { id: '3', nome: 'Pedro Henrique', faixa: 'Branca' }
+    { id: '1', nome: 'Carlos Silva', turma: 'Adultos', faixa: 'Azul', graus: '2', foto: '' },
+    { id: '2', nome: 'Mariana Souza', turma: 'Kids 1', faixa: 'Amarela', graus: '1', foto: '' }
 ];
 
 let chamadas = JSON.parse(localStorage.getItem('tatame_chamadas')) || {};
 
-// Inicialização ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
     const hoje = new Date().toISOString().split('T')[0];
     document.getElementById('dataChamada').value = hoje;
@@ -18,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarEstatisticas();
 });
 
-// Controle de Abas
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -31,35 +27,40 @@ function switchTab(tabId) {
     }
 }
 
-// Salvar dados no navegador
 function salvarDados() {
     localStorage.setItem('tatame_alunos', JSON.stringify(alunos));
     localStorage.setItem('tatame_chamadas', JSON.stringify(chamadas));
     atualizarEstatisticas();
 }
 
-// Gerenciamento de Alunos
 function salvarAluno(event) {
     event.preventDefault();
     const id = document.getElementById('alunoId').value;
     const nome = document.getElementById('nomeAluno').value.trim();
+    const turma = document.getElementById('turmaAluno').value;
     const faixa = document.getElementById('faixaAluno').value;
+    const graus = document.getElementById('grausAluno').value;
+    const foto = document.getElementById('fotoAluno').value.trim();
 
     if (!nome) return;
 
     if (id) {
-        // Editar
         const aluno = alunos.find(a => a.id === id);
         if (aluno) {
             aluno.nome = nome;
+            aluno.turma = turma;
             aluno.faixa = faixa;
+            aluno.graus = graus;
+            aluno.foto = foto;
         }
     } else {
-        // Novo
         const novoAluno = {
             id: Date.now().toString(),
             nome,
-            faixa
+            turma,
+            faixa,
+            graus,
+            foto
         };
         alunos.push(novoAluno);
     }
@@ -70,23 +71,41 @@ function salvarAluno(event) {
     carregarChamada();
 }
 
-function renderizarAlunos(filtro = '') {
+function renderizarAlunos() {
     const tbody = document.getElementById('tabelaAlunos');
     tbody.innerHTML = '';
 
-    const alunosFiltrados = alunos.filter(a => a.nome.toLowerCase().includes(filtro.toLowerCase()));
+    const termo = document.getElementById('buscaAluno').value.toLowerCase();
+    const turmaFiltro = document.getElementById('filtroTurmaGerenciar').value;
+
+    const alunosFiltrados = alunos.filter(a => {
+        const matchNome = a.nome.toLowerCase().includes(termo);
+        const matchTurma = turmaFiltro ? a.turma === turmaFiltro : true;
+        return matchNome && matchTurma;
+    });
 
     if (alunosFiltrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Nenhum aluno encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Nenhum aluno encontrado.</td></tr>`;
         return;
     }
 
     alunosFiltrados.forEach(aluno => {
         const totalPresencas = calcularTotalPresencas(aluno.id);
+        const avatarUrl = aluno.foto ? aluno.foto : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+        const turmaBadge = aluno.turma || 'Adultos';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${aluno.nome}</td>
-            <td><span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span></td>
+            <td>
+                <div class="aluno-info">
+                    <img src="${avatarUrl}" class="aluno-avatar" alt="Foto">
+                    <span>${aluno.nome}</span>
+                </div>
+            </td>
+            <td><span class="badge-turma">${turmaBadge}</span></td>
+            <td>
+                <span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span>
+                <span class="graus-texto">${aluno.graus} ${aluno.graus == '1' ? 'Grau' : 'Graus'}</span>
+            </td>
             <td><strong>${totalPresencas}</strong> aulas</td>
             <td>
                 <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="editarAluno('${aluno.id}')"><i class="fa-solid fa-pen"></i></button>
@@ -98,8 +117,7 @@ function renderizarAlunos(filtro = '') {
 }
 
 function filtrarAlunos() {
-    const termo = document.getElementById('buscaAluno').value;
-    renderizarAlunos(termo);
+    renderizarAlunos();
 }
 
 function editarAluno(id) {
@@ -108,7 +126,10 @@ function editarAluno(id) {
 
     document.getElementById('alunoId').value = aluno.id;
     document.getElementById('nomeAluno').value = aluno.nome;
+    document.getElementById('turmaAluno').value = aluno.turma || 'Adultos';
     document.getElementById('faixaAluno').value = aluno.faixa;
+    document.getElementById('grausAluno').value = aluno.graus || '0';
+    document.getElementById('fotoAluno').value = aluno.foto || '';
     document.getElementById('btnSalvarAluno').innerHTML = `<i class="fa-solid fa-check"></i> Salvar Alterações`;
     document.getElementById('btnCancelarEdicao').style.display = 'inline-flex';
 }
@@ -129,9 +150,9 @@ function excluirAluno(id) {
     }
 }
 
-// Chamada do Dia
 function carregarChamada() {
     const data = document.getElementById('dataChamada').value;
+    const turmaSelecionada = document.getElementById('filtroTurmaChamada').value;
     const tbody = document.getElementById('listaChamada');
     tbody.innerHTML = '';
 
@@ -139,22 +160,33 @@ function carregarChamada() {
         chamadas[data] = {};
     }
 
-    if (alunos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Cadastre alunos na aba "Gerenciar Alunos" primeiro.</td></tr>`;
+    const alunosDaTurma = alunos.filter(a => (a.turma || 'Adultos') === turmaSelecionada);
+
+    if (alunosDaTurma.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Nenhum aluno cadastrado na turma "${turmaSelecionada}".</td></tr>`;
+        atualizarEstatisticas();
         return;
     }
 
-    alunos.forEach(aluno => {
+    alunosDaTurma.forEach(aluno => {
         const status = chamadas[data][aluno.id] || 'Ausente';
+        const avatarUrl = aluno.foto ? aluno.foto : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${aluno.nome}</td>
-            <td><span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span></td>
+            <td>
+                <div class="aluno-info">
+                    <img src="${avatarUrl}" class="aluno-avatar" alt="Foto">
+                    <span>${aluno.nome}</span>
+                </div>
+            </td>
+            <td>
+                <span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span>
+                <span class="graus-texto">${aluno.graus} ${aluno.graus == '1' ? 'Grau' : 'Graus'}</span>
+            </td>
             <td>
                 <div class="status-buttons" id="status-group-${aluno.id}">
                     <button type="button" class="status-btn ${status === 'Presente' ? 'active-presente' : ''}" onclick="mudarStatus('${aluno.id}', 'Presente')">Presente</button>
                     <button type="button" class="status-btn ${status === 'Ausente' ? 'active-ausente' : ''}" onclick="mudarStatus('${aluno.id}', 'Ausente')">Ausente</button>
-                    <button type="button" class="status-btn ${status === 'Justificado' ? 'active-justificado' : ''}" onclick="mudarStatus('${aluno.id}', 'Justificado')">Just. korban</button>
                 </div>
             </td>
         `;
@@ -169,24 +201,26 @@ function mudarStatus(alunoId, status) {
     
     chamadas[data][alunoId] = status;
 
-    // Atualiza classes visuais dos botões
     const group = document.getElementById(`status-group-${alunoId}`);
-    group.querySelectorAll('.status-btn').forEach(btn => {
-        btn.className = 'status-btn';
-    });
+    if (group) {
+        group.querySelectorAll('.status-btn').forEach(btn => {
+            btn.className = 'status-btn';
+        });
 
-    if (status === 'Presente') group.children[0].classList.add('active-presente');
-    if (status === 'Ausente') group.children[1].classList.add('active-ausente');
-    if (status === 'Justificado') group.children[2].classList.add('active-justificado');
+        if (status === 'Presente') group.children[0].classList.add('active-presente');
+        if (status === 'Ausente') group.children[1].classList.add('active-ausente');
+    }
 
     salvarDados();
 }
 
 function marcarTodos(status) {
     const data = document.getElementById('dataChamada').value;
+    const turmaSelecionada = document.getElementById('filtroTurmaChamada').value;
     if (!chamadas[data]) chamadas[data] = {};
 
-    alunos.forEach(aluno => {
+    const alunosDaTurma = alunos.filter(a => (a.turma || 'Adultos') === turmaSelecionada);
+    alunosDaTurma.forEach(aluno => {
         chamadas[data][aluno.id] = status;
     });
 
@@ -199,7 +233,6 @@ function salvarChamada() {
     alert('Chamada salva com sucesso!');
 }
 
-// Relatórios e Estatísticas
 function calcularTotalPresencas(alunoId) {
     let total = 0;
     Object.values(chamadas).forEach(dia => {
@@ -209,13 +242,16 @@ function calcularTotalPresencas(alunoId) {
 }
 
 function atualizarEstatisticas() {
-    const data = document.getElementById('dataChamada').value;
     document.getElementById('totalAlunos').innerText = alunos.length;
+
+    const data = document.getElementById('dataChamada').value;
+    const turmaSelecionada = document.getElementById('filtroTurmaChamada').value;
+    const alunosDaTurma = alunos.filter(a => (a.turma || 'Adultos') === turmaSelecionada);
 
     let presentes = 0;
     if (chamadas[data]) {
-        Object.values(chamadas[data]).forEach(status => {
-            if (status === 'Presente') presentes++;
+        alunosDaTurma.forEach(aluno => {
+            if (chamadas[data][aluno.id] === 'Presente') presentes++;
         });
     }
     document.getElementById('presentesHoje').innerText = presentes;
@@ -225,17 +261,31 @@ function renderizarRelatorios() {
     const tbody = document.getElementById('tabelaRelatorio');
     tbody.innerHTML = '';
 
-    if (alunos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Nenhum dado para exibir.</td></tr>`;
+    const turmaFiltro = document.getElementById('filtroTurmaRelatorio').value;
+    const alunosFiltrados = turmaFiltro ? alunos.filter(a => a.turma === turmaFiltro) : alunos;
+
+    if (alunosFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Nenhum dado para exibir.</td></tr>`;
         return;
     }
 
-    alunos.forEach(aluno => {
+    alunosFiltrados.forEach(aluno => {
         const total = calcularTotalPresencas(aluno.id);
+        const avatarUrl = aluno.foto ? aluno.foto : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+        const turmaBadge = aluno.turma || 'Adultos';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${aluno.nome}</td>
-            <td><span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span></td>
+            <td>
+                <div class="aluno-info">
+                    <img src="${avatarUrl}" class="aluno-avatar" alt="Foto">
+                    <span>${aluno.nome}</span>
+                </div>
+            </td>
+            <td><span class="badge-turma">${turmaBadge}</span></td>
+            <td>
+                <span class="badge badge-${aluno.faixa.toLowerCase()}">${aluno.faixa}</span>
+                <span class="graus-texto">${aluno.graus} ${aluno.graus == '1' ? 'Grau' : 'Graus'}</span>
+            </td>
             <td><strong>${total}</strong></td>
             <td><button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="abrirHistorico('${aluno.id}')"><i class="fa-solid fa-calendar-days"></i> Ver Datas</button></td>
         `;
@@ -243,7 +293,6 @@ function renderizarRelatorios() {
     });
 }
 
-// Modal de Histórico
 function abrirHistorico(alunoId) {
     const aluno = alunos.find(a => a.id === alunoId);
     if (!aluno) return;
@@ -259,7 +308,6 @@ function abrirHistorico(alunoId) {
         }
     });
 
-    // Ordenar da mais recente para a mais antiga
     datasPresente.sort().reverse();
 
     if (datasPresente.length === 0) {
