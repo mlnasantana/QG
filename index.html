@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TatameCheck - Chamada de Jiu-Jitsu</title>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Arquivo CSS separado -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-hand-fist"></i> TatameCheck</h1>
+            <p>Sistema de Controle de Presença - Jiu-Jitsu</p>
+        </div>
+        <div class="header-stats">
+            <div class="stat-card">
+                <span id="totalAlunos">0</span>
+                <label>Alunos</label>
+            </div>
+            <div class="stat-card">
+                <span id="presentesHoje">0</span>
+                <label>Presentes Hoje</label>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Navegação por Abas -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('chamada')"><i class="fa-solid fa-clipboard-user"></i> Chamada do Dia</button>
+            <button class="tab-btn" onclick="switchTab('alunos')"><i class="fa-solid fa-users-gear"></i> Gerenciar Alunos</button>
+            <button class="tab-btn" onclick="switchTab('relatorios')"><i class="fa-solid fa-chart-pie"></i> Relatórios</button>
+        </div>
+
+        <!-- ABA 1: CHAMADA -->
+        <section id="tab-chamada" class="tab-content active">
+            <div class="card toolbar">
+                <div class="date-picker-group">
+                    <label for="dataChamada"><i class="fa-regular fa-calendar"></i> Data da Aula:</label>
+                    <input type="date" id="dataChamada" onchange="carregarChamada()">
+                </div>
+                <div class="quick-actions">
+                    <button class="btn btn-success" onclick="marcarTodos('Presente')"><i class="fa-solid fa-check-double"></i> Todos Presentes</button>
+                    <button class="btn btn-secondary" onclick="marcarTodos('Ausente')"><i class="fa-solid fa-xmark"></i> Limpar Chamada</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Faixa</th>
+                                <th>Presença</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaChamada">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button class="btn btn-primary btn-block" onclick="salvarChamada()"><i class="fa-solid fa-floppy-disk"></i> Salvar Chamada</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: ALUNOS -->
+        <section id="tab-alunos" class="tab-content">
+            <div class="card">
+                <h3><i class="fa-solid fa-user-plus"></i> Adicionar / Editar Aluno</h3>
+                <form id="formAluno" onsubmit="salvarAluno(event)">
+                    <input type="hidden" id="alunoId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nomeAluno">Nome Completo</label>
+                            <input type="text" id="nomeAluno" required placeholder="Ex: Lucas Silva">
+                        </div>
+                        <div class="form-group">
+                            <label for="faixaAluno">Faixa</label>
+                            <select id="faixaAluno" required>
+                                <option value="Branca">Branca</option>
+                                <option value="Azul">Azul</option>
+                                <option value="Roxa">Roxa</option>
+                                <option value="Marrom">Marrom</option>
+                                <option value="Preta">Preta</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="btnSalvarAluno"><i class="fa-solid fa-plus"></i> Cadastrar Aluno</button>
+                        <button type="button" class="btn btn-secondary" id="btnCancelarEdicao" style="display:none;" onclick="cancelarEdicao()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="search-bar">
+                    <input type="text" id="buscaAluno" placeholder="Buscar aluno por nome..." oninput="filtrarAlunos()">
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Faixa</th>
+                                <th>Total de Presenças</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaAlunos">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 3: RELATÓRIOS -->
+        <section id="tab-relatorios" class="tab-content">
+            <div class="card">
+                <h3><i class="fa-solid fa-chart-line"></i> Frequência Geral dos Alunos</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Faixa</th>
+                                <th>Aulas Comparecidas</th>
+                                <th>Histórico de Datas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaRelatorio">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Histórico -->
+    <div id="modalHistorico" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <h3 id="modalNomeAluno">Histórico de Presenças</h3>
+            <ul id="listaHistoricoDatas" class="history-list"></ul>
+        </div>
+    </div>
+
+    <!-- Script principal separado -->
+    <script src="script.js"></script>
+</body>
+</html>
